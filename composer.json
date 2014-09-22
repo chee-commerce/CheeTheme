@@ -10,7 +10,7 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/support": "4.2.*",
-        "chee/theme": "dev-master"
+        "chee/module": "dev-master"
     },
     "autoload": {
         "classmap": [
