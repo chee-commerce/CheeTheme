@@ -1,0 +1,24 @@
+{
+    "name": "chee/theme",
+    "description": "A theme manager",
+    "authors": [
+        {
+            "name": "CheeCommerce",
+            "email": "developer@cheecommerce.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*",
+        "chee/theme": "dev-master"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "Chee\\Theme\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
