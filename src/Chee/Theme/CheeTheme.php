@@ -108,14 +108,21 @@ use Chee\Module\CheeModule;
         foreach ($themesList as $themeName)
         {
             if($isModel) $themeName = $themeName->name;
+            else
+            {
+                $themeModel = $this->findOrFalse('name', $themeName);
+                if($themeModel) $themes[$themeName]['active'] = 1;
+                else $themes[$themeName]['active'] = 0;
+            }
+
             $themes[$themeName]['name'] = $this->def($themeName, 'name');
             $themes[$themeName]['icon'] = null === $this->def($themeName, 'icon') ? null : $this->getConfig('assets').'/'.$themeName.'/'.$this->def($themeName, 'icon');
             $themes[$themeName]['description'] = $this->def($themeName, 'description');
             $themes[$themeName]['author'] = $this->def($themeName, 'author');
             $themes[$themeName]['website'] = $this->def($themeName, 'website');
             $themes[$themeName]['version'] = $this->def($themeName, 'version');
+
         }
-        dd($themes);
         return $themes;
     }
 
