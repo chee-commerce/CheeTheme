@@ -47,6 +47,20 @@ use Chee\Module\CheeModule;
         $this->configFile = '/theme.json';
     }
 
+    public function requireFunctions()
+    {
+        $themes = ThemeModel::all();
+        foreach ($themes as $theme)
+        {
+            $globalInclude = $this->getConfig('include');
+            foreach ($globalInclude as $file)
+            {
+                $path = $this->getModuleDirectory($theme->name).'/'.$file;
+                if ($this->files->exists($path)) require $path;
+            }
+        }
+    }
+
     /**
      * Active theme and build assets
      * @param $name string

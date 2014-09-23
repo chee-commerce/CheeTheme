@@ -16,7 +16,7 @@ class ThemeServiceProvider extends ServiceProvider
 	{
 		$this->package('chee/theme');
 
-		//$this->bootCommands();
+		$this->app['chee-theme']->requireFunctions();
 	}
 
 	/**
