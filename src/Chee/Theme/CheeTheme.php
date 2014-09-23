@@ -56,19 +56,38 @@ use Chee\Module\CheeModule;
     {
         if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
         {
-            $theme = new ThemeModel;
-            $theme->name = $this->def($name, 'name');
-            $theme->save();
-            return true;
+            if (!$this->findOrFalse('name', $name))
+            {
+                $theme = new ThemeModel;
+                $theme->name = $this->def($name, 'name');
+                $theme->save();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Dective theme and build assets
+     * @param $name string
+     * @param $order int order of theme
+     * @return bool
+     */
+    public function deactive($name)
+    {
+        if ($theme = $this->findOrFalse('name', $name))
+        {
+            ThemeModel::find($theme -> id)->delete();
         }
         return false;
     }
 
     /**
      * Get all list themes
+     * @param $actives model|null
      * @return array
      */
-    public function getListAllThemes()
+    public function getListAllThemes($inactives = false)
     {
         if (!$this->files->exists($this->path))
         {
@@ -81,7 +100,14 @@ use Chee\Module\CheeModule;
         {
             if ($this->checkRequires($directory))
             {
-                array_push($themes, basename($directory));
+                if ($inactives)
+                {
+                    if (!$this->findOrFalse('name', basename($directory)))
+                    {
+                        array_push($themes, basename($directory));
+                    }
+                }
+                else array_push($themes, basename($directory));
             }
         }
         return $this->getListThemes($themes);
@@ -95,6 +121,15 @@ use Chee\Module\CheeModule;
     {
         $themes = ThemeModel::all();
         return $this->getListThemes($themes, true);
+    }
+
+    /**
+     * Get list of active themes
+     * @return array
+     */
+    public function getListInactiveThemes()
+    {
+        return $this->getListAllThemes('inactive');
     }
 
     /**
