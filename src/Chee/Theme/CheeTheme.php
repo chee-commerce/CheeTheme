@@ -128,6 +128,85 @@ use Chee\Module\CheeModule;
             $this->errors['themeInit']['move'] = 'Can not move files.';
             return false;
         }
+
+        $this->buildAssets($themeName);
+
+        return true;
+    }
+
+    /**
+     * Update theme
+    * @param $archive string path of zip
+    * @param $moduleName string
+    * @return bool
+    */
+    protected function update($archivePath, $themeName)
+    {
+        parent::update($archivePath, $themeName);
+        $this->buildAssets($themeName);
+    }
+
+    /**
+     * Delete theme and remove assets and module files
+     * @param $name string
+     * @return boolean
+     */
+    public function delete($name)
+    {
+        if ($this->moduleExists($name))
+        {
+            $this->removeAssets($name);
+
+            $themePath = $this->getModuleDirectory($name);
+
+            $this->files->deleteDirectory($themePath);
+            if ($this->files->exists($themePath))
+            {
+                $this->errors['delete']['forbidden']['theme'] = $themePath;
+            }
+
+            $theme = $this->findOrFalse('name', $name);
+            if ($theme)
+            {
+                $theme->delete();
+            }
+        }
+    }
+
+    /**
+     * Remove assets of a theme
+     * @param $themeName string
+     * @return bool
+     */
+    public function removeAssets($themeName)
+    {
+        $assets = $this->getAssetDirectory($themeName);
+
+        $this->files->deleteDirectory($assets);
+        if ($this->files->exists($assets))
+        {
+            $this->errors['delete']['forbidden']['assets'] = $assets;
+        }
+    }
+
+    /**
+     * Find one record from model
+     * @param $field string
+     * @param $name string
+     * @return object|false
+     */
+    public function findOrFalse($field, $name) {
+        $theme = ThemeModel::where($field, $name)->first();
+        return !is_null($theme) ? $theme : false;
+    }
+
+    /**
+     * Update record module in database
+     * @param $moduleName string
+     * @return void
+     */
+    protected function updateRecordModule($moduleName)
+    {
         return true;
     }
 

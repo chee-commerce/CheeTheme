@@ -7,7 +7,6 @@ return array(
 
     'requires' => array(
         'index.php',
-        'style.css',
         'screenshot.png',
         'theme.json' => array(
             'name',
