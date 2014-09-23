@@ -70,6 +70,11 @@ use Chee\Module\CheeModule;
      */
     public function getListAllThemes()
     {
+        if (!$this->files->exists($this->path))
+        {
+            $this->files->makeDirectory($this->path, 0755, true);
+        }
+
         $directories = $this->files->directories($this->path);
         $themes = array();
         foreach($directories as $directory)
