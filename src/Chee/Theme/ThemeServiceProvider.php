@@ -17,10 +17,6 @@ class ThemeServiceProvider extends ServiceProvider
 		$this->package('chee/theme');
 
 		//$this->bootCommands();
-
-		$this->app['chee-theme']->start();
-
-		//$this->app['chee-theme']->register();
 	}
 
 	/**
@@ -43,7 +39,7 @@ class ThemeServiceProvider extends ServiceProvider
 	*/
 	public function provides()
 	{
-		return array('theme');
+		return array('chee-theme');
 	}
 
 	public function bootCommands()
