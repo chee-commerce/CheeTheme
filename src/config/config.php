@@ -11,7 +11,8 @@ return array(
 
     'requires' => array(
         'index.php',
-        'screenshot.png',
+        'assets/screenshot.png',
+        'assets/style.css',
         'theme.json' => array(
             'name',
             'version'
