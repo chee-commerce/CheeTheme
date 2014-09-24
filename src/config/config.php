@@ -11,11 +11,11 @@ return array(
 
     'requires' => array(
         'index.php',
-        'assets/screenshot.png',
         'assets/style.css',
         'theme.json' => array(
             'name',
-            'version'
+            'version',
+            'icon'
         ),
     )
 );
