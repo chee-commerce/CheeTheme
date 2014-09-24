@@ -196,18 +196,6 @@ use Chee\Module\CheeModule;
     }
 
     /**
-     * Update theme
-    * @param $archive string path of zip
-    * @param $moduleName string
-    * @return bool
-    */
-    protected function update($archivePath, $themeName)
-    {
-        parent::update($archivePath, $themeName);
-        $this->buildAssets($themeName);
-    }
-
-    /**
      * Delete theme and remove assets and module files
      * @param $name string
      * @return boolean
@@ -231,22 +219,6 @@ use Chee\Module\CheeModule;
             {
                 $theme->delete();
             }
-        }
-    }
-
-    /**
-     * Remove assets of a theme
-     * @param $themeName string
-     * @return bool
-     */
-    public function removeAssets($themeName)
-    {
-        $assets = $this->getAssetDirectory($themeName);
-
-        $this->files->deleteDirectory($assets);
-        if ($this->files->exists($assets))
-        {
-            $this->errors['delete']['forbidden']['assets'] = $assets;
         }
     }
 
