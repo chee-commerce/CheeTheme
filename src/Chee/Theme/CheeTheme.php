@@ -47,7 +47,7 @@ use Chee\Module\CheeModule;
         $this->configFile = '/theme.json';
     }
 
-    public function requireFunctions()
+    public function includes()
     {
         $themes = ThemeModel::all();
         foreach ($themes as $theme)
