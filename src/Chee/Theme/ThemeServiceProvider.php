@@ -12,6 +12,11 @@ class ThemeServiceProvider extends ServiceProvider
 	*/
 	protected $defer = false;
 
+	/**
+	* Bootstrap the application events.
+	*
+	* @return void
+	*/
 	public function boot()
 	{
 		$this->package('chee/theme');
@@ -40,24 +45,6 @@ class ThemeServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('chee-theme');
-	}
-
-	public function bootCommands()
-	{
-		$this->app['CheeModule.create'] = $this->app->share(function($app)
-		{
-			return new Commands\CreateCommand($app);
-		});
-
-		$this->app['CheeModule.buildAssets'] = $this->app->share(function($app)
-		{
-			return new Commands\BuildAssetsCommand($app);
-		});
-
-		$this->commands(array(
-			'CheeModule.create',
-			'CheeModule.buildAssets'
-		));
 	}
 
 }

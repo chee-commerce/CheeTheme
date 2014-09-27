@@ -39,6 +39,9 @@ use Chee\Module\CheeModule;
 
     /**
      * Initialize class
+     * @param $app Illuminate\Foundation\Application
+     * @param $config Illuminate\Config\Repository
+     * @param $files Illuminate\Filesystem\Filesystem
      */
     public function __construct(Application $app, Repository $config, Filesystem $files)
     {
@@ -75,6 +78,7 @@ use Chee\Module\CheeModule;
                 $theme = new ThemeModel;
                 $theme->name = $this->def($name, 'name');
                 $theme->save();
+                $this->setPositions($name);
                 return true;
             }
         }
@@ -92,6 +96,7 @@ use Chee\Module\CheeModule;
         if ($theme = $this->findOrFalse('name', $name))
         {
             ThemeModel::find($theme -> id)->delete();
+            $this->removePositions($name);
         }
         return false;
     }
@@ -183,7 +188,7 @@ use Chee\Module\CheeModule;
      */
     protected function moduleInit($archivePath, $themeName)
     {
-        //Move extracted theme to themes pathd
+        //Move extracted theme to themes path
         if (!$this->files->copyDirectory($archivePath, $this->path.'/'.$themeName))
         {
             $this->errors['themeInit']['move'] = 'Can not move files.';
@@ -193,6 +198,52 @@ use Chee\Module\CheeModule;
         $this->buildAssets($themeName);
 
         return true;
+    }
+
+    /**
+     * Set positions of theme
+     * @param $themeName
+     * @return void
+     */
+    public function setPositions($themeName)
+    {
+        $positions = $this->def($themeName, 'positions');
+        foreach ($positions as $pos)
+        {
+            if (isset($pos['name']))
+            {
+                $position = new ThemePosition;
+                $position->name = $pos['name'];
+                if (isset($pos['description']))
+                    $position->description = $pos['description'];
+                $position->theme_name = $themeName;
+                $position->save();
+            }
+        }
+    }
+
+    /**
+     * Remove positions of theme
+     * @param $themeName
+     * @return void
+     */
+    public function removePositions($themeName)
+    {
+        $positions = ThemePosition::where('theme_name', $themeName)->delete();
+    }
+
+    public function slugify($text)
+    {
+      $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+      $text = trim($text, '-');
+      $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+      $text = strtolower($text);
+      $text = preg_replace('~[^-\w]+~', '', $text);
+      if (empty($text))
+      {
+        return false;
+      }
+      return $text;
     }
 
     /**
