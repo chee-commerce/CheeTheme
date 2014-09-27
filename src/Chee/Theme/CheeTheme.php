@@ -71,6 +71,12 @@ use Chee\Module\CheeModule;
      */
     public function active($name)
     {
+        $cheeCommerceRequire = $this->def($name, $this->systemName);
+        if (!$this->CheeCommerceCompliancy($cheeCommerceRequire))
+        {
+            return false;
+        }
+
         if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
         {
             if (!$this->findOrFalse('name', $name))
