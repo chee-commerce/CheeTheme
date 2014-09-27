@@ -78,7 +78,6 @@ use Chee\Module\CheeModule;
                 $theme = new ThemeModel;
                 $theme->name = $this->def($name, 'name');
                 $theme->save();
-                $this->setPositions($name);
                 return true;
             }
         }
@@ -96,7 +95,6 @@ use Chee\Module\CheeModule;
         if ($theme = $this->findOrFalse('name', $name))
         {
             ThemeModel::find($theme -> id)->delete();
-            $this->removePositions($name);
         }
         return false;
     }
@@ -196,8 +194,24 @@ use Chee\Module\CheeModule;
         }
 
         $this->buildAssets($themeName);
+        $this->setPositions($themeName);
 
         return true;
+    }
+
+    /**
+     * Update module
+    * @param $archive string path of zip
+    * @param $moduleName string
+    * @return bool
+    */
+    protected function update($archivePath, $themeName)
+    {
+        if (parent::update($archivePath, $themeName))
+        {
+            $this->removePositions($themeName);
+            $this->setPositions($themeName);
+        }
     }
 
     /**
