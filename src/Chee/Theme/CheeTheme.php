@@ -150,6 +150,23 @@ use Chee\Module\CheeModule;
     }
 
     /**
+     * Get details of a theme
+     * @param $name string
+     * @return array|false
+     */
+    public function getTheme($name)
+    {
+        $theme = array();
+        $theme['name'] = $this->def($name, 'name');
+        $theme['icon'] = null === $this->def($name, 'icon') ? null : $this->getConfig('assets').'/'.$name.'/'.$this->def($name, 'icon');
+        $theme['description'] = $this->def($name, 'description');
+        $theme['author'] = $this->def($name, 'author');
+        $theme['website'] = $this->def($name, 'website');
+        $theme['version'] = $this->def($name, 'version');
+        return $theme;
+    }
+
+    /**
      * Get list themes
      * @param $themesModel array
      * @return array
