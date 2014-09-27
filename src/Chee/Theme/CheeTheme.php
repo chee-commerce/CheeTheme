@@ -288,6 +288,7 @@ use Chee\Module\CheeModule;
             {
                 $theme->delete();
             }
+            $this->removePositions($name);
         }
     }
 
