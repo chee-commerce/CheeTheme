@@ -212,12 +212,16 @@ use Chee\Module\CheeModule;
         {
             if (isset($pos['name']))
             {
-                $position = new ThemePosition;
-                $position->name = $pos['name'];
-                if (isset($pos['description']))
-                    $position->description = $pos['description'];
-                $position->theme_name = $themeName;
-                $position->save();
+                $pos['name'] = $this->slugify($pos['name']);
+                if ($pos['name'])
+                {
+                    $position = new ThemePosition;
+                    $position->name = $pos['name'];
+                    if (isset($pos['description']))
+                        $position->description = $pos['description'];
+                    $position->theme_name = $themeName;
+                    $position->save();
+                }
             }
         }
     }
