@@ -162,7 +162,7 @@ use Chee\Module\CheeModule;
      */
     public function getListActiveThemes()
     {
-        $themes = ThemeModel::orderBy('theme_order', 'desc')->get();
+        $themes = ThemeModel::orderBy('theme_order', 'asc')->get();
         return $this->getListThemes($themes, true);
     }
 
