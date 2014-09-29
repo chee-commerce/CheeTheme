@@ -91,6 +91,26 @@ use Chee\Module\CheeModule;
     }
 
     /**
+     * Force active theme and build assets
+     * @param $name string
+     * @return bool
+     */
+    public function forceActive($name)
+    {
+        if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
+        {
+            if (!$this->findOrFalse('name', $name))
+            {
+                $theme = new ThemeModel;
+                $theme->name = $this->def($name, 'name');
+                $theme->save();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Dective theme and build assets
      * @param $name string
      * @param $order int order of theme
