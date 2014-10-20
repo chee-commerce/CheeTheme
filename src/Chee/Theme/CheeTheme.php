@@ -50,17 +50,33 @@ use Chee\Module\CheeModule;
         $this->configFile = '/theme.json';
     }
 
-    public function includes()
+    /**
+     * Get all module from database and initialize
+     */
+    public function start()
     {
-        $themes = ThemeModel::all();
-        foreach ($themes as $theme)
+        $themes = self::getListAllThemes();
+        foreach($themes as $themeName => $attr)
         {
-            $globalInclude = $this->getConfig('include');
-            foreach ($globalInclude as $file)
+            if ($attr['active'] == 1)
             {
-                $path = $this->getModuleDirectory($theme->name).'/'.$file;
-                if ($this->files->exists($path)) require $path;
+                $path = $this->getModuleDirectory($themeName);
+                if ($path)
+                {
+                    $this->themes[$themeName] = new Theme($this->app, $themeName, $path);
+                }
             }
+        }
+    }
+
+    /**
+     * Register modules with Moduel class
+     */
+    public function register()
+    {
+        foreach ($this->themes as $theme)
+        {
+            $theme->register();
         }
     }
 
