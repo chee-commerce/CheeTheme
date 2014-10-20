@@ -1,6 +1,7 @@
 {
     "name": "chee/theme",
     "description": "A theme manager",
+    "license": "MIT",
     "authors": [
         {
             "name": "CheeCommerce",
