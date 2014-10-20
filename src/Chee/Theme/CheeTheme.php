@@ -36,6 +36,12 @@ use Chee\Module\CheeModule;
      */
     protected $path;
 
+    /**
+     * Array of Themes
+     * @var Illuminate\Config\Repository
+     */
+    protected $themes = array();
+
 
     /**
      * Initialize class
