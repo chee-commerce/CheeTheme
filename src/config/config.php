@@ -10,7 +10,7 @@ return array(
     ),
 
     'requires' => array(
-        'ServiceProvider.php'
+        'ServiceProvider.php',
         'theme.json' => array(
             'name',
             'version',
