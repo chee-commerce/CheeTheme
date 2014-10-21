@@ -224,7 +224,11 @@ use Chee\Module\CheeModule;
         $themes = array();
         foreach ($themesList as $themeName)
         {
-            if($isModel) $themeName = $themeName->name;
+            if($isModel)
+            {
+                $themes[$themeName->name]['id'] = $themeName->id;
+                $themeName = $themeName->name;
+            }
             else
             {
                 $themeModel = $this->findOrFalse('name', $themeName);
