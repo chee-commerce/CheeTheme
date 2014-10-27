@@ -1,7 +1,7 @@
 <?php
 
 return array(
-    'path' => 'Themes',
+    'path' => 'themes',
 
     'assets' => '/themes', //=> public/themes/THEME_NAME
 
