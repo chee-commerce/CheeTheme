@@ -17,6 +17,7 @@ class CreateActiveThemesTable extends Migration {
 			$table->increments('id');
 			$table->string('name', 150);
 			$table->integer('theme_order')->default(0);
+			$table->boolean('is_enabled', 0);
 		});
 	}
 

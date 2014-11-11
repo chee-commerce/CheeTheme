@@ -84,6 +84,16 @@ use Chee\Module\CheeModule;
         {
             $theme->register();
         }
+        $themes = ThemeModel::where('is_enabled', 1)->get();
+        foreach ($themes as $theme)
+        {
+            if ($theme->is_enabled)
+            {
+                $this->app['events']->fire('themes.enable.'.$theme->name, null);
+                $theme->is_enabled = 0;
+            }
+            $theme->save();
+        }
     }
 
     /**
@@ -105,6 +115,7 @@ use Chee\Module\CheeModule;
             {
                 $theme = new ThemeModel;
                 $theme->name = $this->def($name, 'name');
+                $theme->is_enabled = 1;
                 $theme->save();
                 return true;
             }
@@ -125,6 +136,7 @@ use Chee\Module\CheeModule;
             {
                 $theme = new ThemeModel;
                 $theme->name = $this->def($name, 'name');
+                $theme->is_enabled = 1;
                 $theme->save();
                 return true;
             }
@@ -143,6 +155,7 @@ use Chee\Module\CheeModule;
         if ($theme = $this->findOrFalse('name', $name))
         {
             ThemeModel::find($theme -> id)->delete();
+            $this->app['events']->fire('themes.disable.'.$name, null);
         }
         return false;
     }
