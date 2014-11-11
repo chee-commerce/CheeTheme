@@ -6,7 +6,12 @@ return array(
     'assets' => '/themes', //=> public/themes/THEME_NAME
 
     'include' => array(
-        'functions.php'
+        'helpers.php',
+        'bindings.php',
+        'observers.php',
+        'filters.php',
+        'composers.php',
+        'routes.php'
     ),
 
     'requires' => array(
