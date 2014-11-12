@@ -8,4 +8,6 @@ class ThemePosition extends Model {
     public $table = 'theme_positions';
 
     public $timestamps = false;
+
+    protected $primaryKey = 'theme_position_id';
 }

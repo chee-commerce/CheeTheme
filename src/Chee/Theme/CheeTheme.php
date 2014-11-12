@@ -84,13 +84,13 @@ use Chee\Module\CheeModule;
         {
             $theme->register();
         }
-        $themes = ThemeModel::where('is_enabled', 1)->get();
+        $themes = ThemeModel::where('active_theme_is_enabled', 1)->get();
         foreach ($themes as $theme)
         {
-            if ($theme->is_enabled)
+            if ($theme->active_theme_is_enabled)
             {
-                $this->app['events']->fire('themes.enable.'.$theme->name, null);
-                $theme->is_enabled = 0;
+                $this->app['events']->fire('themes.enable.'.$theme->active_theme_name, null);
+                $theme->active_theme_is_enabled = 0;
             }
             $theme->save();
         }
@@ -111,11 +111,11 @@ use Chee\Module\CheeModule;
 
         if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
         {
-            if (!$this->findOrFalse('name', $name))
+            if (!$this->findOrFalse('active_theme_name', $name))
             {
                 $theme = new ThemeModel;
-                $theme->name = $this->def($name, 'name');
-                $theme->is_enabled = 1;
+                $theme->active_theme_name = $this->def($name, 'name');
+                $theme->active_theme_is_enabled = 1;
                 $theme->save();
                 return true;
             }
@@ -132,11 +132,11 @@ use Chee\Module\CheeModule;
     {
         if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
         {
-            if (!$this->findOrFalse('name', $name))
+            if (!$this->findOrFalse('active_theme_name', $name))
             {
                 $theme = new ThemeModel;
-                $theme->name = $this->def($name, 'name');
-                $theme->is_enabled = 1;
+                $theme->active_theme_name = $this->def($name, 'name');
+                $theme->active_theme_is_enabled = 1;
                 $theme->save();
                 return true;
             }
@@ -152,9 +152,9 @@ use Chee\Module\CheeModule;
      */
     public function deactive($name)
     {
-        if ($theme = $this->findOrFalse('name', $name))
+        if ($theme = $this->findOrFalse('active_theme_name', $name))
         {
-            ThemeModel::find($theme -> id)->delete();
+            ThemeModel::find($theme->active_theme_id)->delete();
             $this->app['events']->fire('themes.disable.'.$name, null);
         }
         return false;
@@ -180,7 +180,7 @@ use Chee\Module\CheeModule;
             {
                 if ($inactives)
                 {
-                    if (!$this->findOrFalse('name', basename($directory)))
+                    if (!$this->findOrFalse('active_theme_name', basename($directory)))
                     {
                         array_push($themes, basename($directory));
                     }
@@ -197,7 +197,7 @@ use Chee\Module\CheeModule;
      */
     public function getListActiveThemes()
     {
-        $themes = ThemeModel::orderBy('theme_order', 'asc')->get();
+        $themes = ThemeModel::orderBy('active_theme_order', 'asc')->get();
         return $this->getListThemes($themes, true);
     }
 
@@ -239,12 +239,12 @@ use Chee\Module\CheeModule;
         {
             if($isModel)
             {
-                $themes[$themeName->name]['id'] = $themeName->id;
-                $themeName = $themeName->name;
+                $themes[$themeName->active_theme_name]['id'] = $themeName->active_theme_id;
+                $themeName = $themeName->active_theme_name;
             }
             else
             {
-                $themeModel = $this->findOrFalse('name', $themeName);
+                $themeModel = $this->findOrFalse('active_theme_name', $themeName);
                 if($themeModel) $themes[$themeName]['active'] = 1;
                 else $themes[$themeName]['active'] = 0;
             }
@@ -308,14 +308,14 @@ use Chee\Module\CheeModule;
         {
             if (isset($pos['name']))
             {
-                $pos['name'] = $this->slugify($pos['name']);
+                $pos['name'] = $this->app['str']->slug($pos['name']);
                 if ($pos['name'])
                 {
                     $position = new ThemePosition;
-                    $position->name = $pos['name'];
+                    $position->theme_position_name = $pos['name'];
                     if (isset($pos['description']))
-                        $position->description = $pos['description'];
-                    $position->theme_name = $themeName;
+                        $position->theme_position_description = $pos['description'];
+                    $position->active_themes_name = $themeName;
                     $position->save();
                 }
             }
@@ -329,21 +329,7 @@ use Chee\Module\CheeModule;
      */
     public function removePositions($themeName)
     {
-        $positions = ThemePosition::where('theme_name', $themeName)->delete();
-    }
-
-    public function slugify($text)
-    {
-      $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
-      $text = trim($text, '-');
-      $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-      $text = strtolower($text);
-      $text = preg_replace('~[^-\w]+~', '', $text);
-      if (empty($text))
-      {
-        return false;
-      }
-      return $text;
+        $positions = ThemePosition::where('active_themes_name', $themeName)->delete();
     }
 
     /**
@@ -365,7 +351,7 @@ use Chee\Module\CheeModule;
                 $this->errors['delete']['forbidden']['theme'] = $themePath;
             }
 
-            $theme = $this->findOrFalse('name', $name);
+            $theme = $this->findOrFalse('active_theme_name', $name);
             if ($theme)
             {
                 $theme->delete();

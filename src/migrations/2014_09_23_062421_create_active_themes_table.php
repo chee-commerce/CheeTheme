@@ -14,10 +14,10 @@ class CreateActiveThemesTable extends Migration {
 	{
 		Schema::create('active_themes', function(Blueprint $table)
 		{
-			$table->increments('id');
-			$table->string('name', 150);
-			$table->integer('theme_order')->default(0);
-			$table->boolean('is_enabled', 0);
+			$table->increments('active_theme_id');
+			$table->string('active_theme_name', 150);
+			$table->integer('active_theme_order')->default(0);
+			$table->boolean('active_theme_is_enabled')->default(0);;
 		});
 	}
 

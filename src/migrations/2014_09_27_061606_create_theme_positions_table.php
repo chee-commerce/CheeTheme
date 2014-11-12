@@ -14,10 +14,10 @@ class CreateThemePositionsTable extends Migration {
 	{
 		Schema::create('theme_positions', function(Blueprint $table)
 		{
-			$table->increments('id');
-			$table->string('name', 150);
-			$table->string('theme_name', 150);
-			$table->text('description')->nullable();
+			$table->increments('theme_position_id');
+			$table->string('theme_position_name', 150);
+			$table->string('active_themes_name', 150);
+			$table->text('theme_position_description')->nullable();
 		});
 	}
 

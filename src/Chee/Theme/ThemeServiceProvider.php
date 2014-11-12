@@ -21,7 +21,7 @@ class ThemeServiceProvider extends ServiceProvider
 	{
 		$this->package('chee/theme');
 
-		//$this->app['chee-theme']->includes();
+		$this->bootCommands();
 
 		$this->app['chee-theme']->start();
 
@@ -39,6 +39,18 @@ class ThemeServiceProvider extends ServiceProvider
 		{
 			return new CheeTheme($app, $app['config'], $app['files']);
 		});
+	}
+
+	public function bootCommands()
+	{
+		$this->app['CheeTheme'] = $this->app->share(function($app)
+		{
+			return new Commands\ListCommand($app);
+		});
+
+		$this->commands(array(
+			'CheeTheme',
+		));
 	}
 
 	/**
