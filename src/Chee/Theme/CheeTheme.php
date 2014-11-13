@@ -1,43 +1,53 @@
 <?php namespace Chee\Theme;
 
 use Illuminate\Foundation\Application;
-use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
-use Chee\Pclzip\Pclzip;
+use Chee\Theme\Models\ThemePosition;
+use Illuminate\Config\Repository;
+use Chee\Theme\Models\ThemeModel;
+use Chee\Theme\Models\ImageSize;
 use Chee\Module\CheeModule;
+use Chee\Pclzip\Pclzip;
 
 /**
  * CheeModule for manage module
+ *
  * @author Chee
  */
+
  class CheeTheme extends CheeModule
  {
     /**
      * IoC
+     *
      * @var Illuminate\Foundation\Application
      */
     protected $app;
 
     /**
      * Config
+     *
      * @var Illuminate\Config\Repository
      */
     protected $config;
 
     /**
      * Files
+     *
      * @var Illuminate\Filesystem\Filesystem
      */
     protected $files;
 
     /**
      * Path of themes
+     *
      * @var string
      */
     protected $path;
 
     /**
      * Array of Themes
+     *
      * @var Illuminate\Config\Repository
      */
     protected $themes = array();
@@ -45,6 +55,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Initialize class
+     *
      * @param $app Illuminate\Foundation\Application
      * @param $config Illuminate\Config\Repository
      * @param $files Illuminate\Filesystem\Filesystem
@@ -58,6 +69,8 @@ use Chee\Module\CheeModule;
 
     /**
      * Get all module from database and initialize
+     *
+     * @return void
      */
     public function start()
     {
@@ -77,6 +90,8 @@ use Chee\Module\CheeModule;
 
     /**
      * Register modules with Moduel class
+     *
+     * @return void
      */
     public function register()
     {
@@ -98,6 +113,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Active theme and build assets
+     *
      * @param $name string
      * @return bool
      */
@@ -125,6 +141,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Force active theme and build assets
+     *
      * @param $name string
      * @return bool
      */
@@ -146,6 +163,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Dective theme and build assets
+     *
      * @param $name string
      * @param $order int order of theme
      * @return bool
@@ -162,6 +180,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get all list themes
+     *
      * @param $actives model|null
      * @return array
      */
@@ -193,6 +212,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get list of active themes
+     *
      * @return array
      */
     public function getListActiveThemes()
@@ -203,6 +223,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get list of active themes
+     *
      * @return array
      */
     public function getListInactiveThemes()
@@ -212,6 +233,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get details of a theme
+     *
      * @param $name string
      * @return array|false
      */
@@ -229,6 +251,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get list themes
+     *
      * @param $themesModel array
      * @return array
      */
@@ -262,6 +285,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Initialize zip theme for install
+     *
      * @param $archivePath string path
      * @param $themeName string
      * @return bool
@@ -278,26 +302,34 @@ use Chee\Module\CheeModule;
         $this->buildAssets($themeName);
         $this->setPositions($themeName);
 
+        $this->removeImageSizes($themeName);
+        $this->setImageSizes($themeName);
+
         return true;
     }
 
     /**
      * Update module
-    * @param $archive string path of zip
-    * @param $moduleName string
-    * @return bool
-    */
+     *
+     * @param $archive string path of zip
+     * @param $moduleName string
+     * @return bool
+     */
     protected function update($archivePath, $themeName)
     {
         if (parent::update($archivePath, $themeName))
         {
             $this->removePositions($themeName);
             $this->setPositions($themeName);
+
+            $this->removeImageSizes($themeName);
+            $this->setImageSizes($themeName);
         }
     }
 
     /**
      * Set positions of theme
+     *
      * @param $themeName
      * @return void
      */
@@ -323,7 +355,52 @@ use Chee\Module\CheeModule;
     }
 
     /**
+     * Set image sizes of theme
+     *
+     * @param $themeName
+     * @return void
+     */
+    public function setImageSizes($themeName)
+    {
+        $imagesSizes = $this->def($themeName, 'imageSizes');
+        $imagesSizesBag = array();
+
+        $imageTypes = array("products" => 0, "categories" => 0, "manufacturers" => 0, "suppliers" => 0);
+        foreach ($imagesSizes as $size)
+        {
+            $types = $imageTypes;
+            foreach ($size['usage'] as $type)
+            {
+                $types[$type] = 1;
+            }
+
+            $imagesSizesBag[] = array(
+                "image_size_name" => $size['name'],
+                "image_size_width" => (int) $size['width'],
+                "image_size_height" => (int) $size['height'],
+                "image_size_quality" => (int) $size['quality'],
+                "image_size_usage" => (string) json_encode($types)
+            );
+        }
+        ImageSize::insert($imagesSizesBag);
+    }
+
+    /**
+     * Remove image sizes where name equal to current image size theme
+     *
+     * @param $themeName
+     * @return void
+     */
+    public function removeImageSizes($themeName)
+    {
+        $imagesSizes = $this->def($themeName, 'imageSizes');
+        foreach ($imagesSizes as $size)
+            ImageSize::where('image_size_name', $size['name'])->delete();
+    }
+
+    /**
      * Remove positions of theme
+     *
      * @param $themeName
      * @return void
      */
@@ -334,6 +411,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Delete theme and remove assets and module files
+     *
      * @param $name string
      * @return boolean
      */
@@ -362,6 +440,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Find one record from model
+     *
      * @param $field string
      * @param $name string
      * @return object|false
@@ -373,6 +452,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Update record module in database
+     *
      * @param $moduleName string
      * @return void
      */
@@ -383,6 +463,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Check if module exists
+     *
      * @param $name string
      * @return bool
      */
@@ -395,6 +476,7 @@ use Chee\Module\CheeModule;
 
     /**
      * Get configuration module
+     *
      * @param $item string
      * @param $default null|mixed
      * @return mixed

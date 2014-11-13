@@ -1,4 +1,4 @@
-<?php namespace Chee\Theme;
+<?php namespace Chee\Theme\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
