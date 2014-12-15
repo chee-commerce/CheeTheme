@@ -1,5 +1,6 @@
 <?php namespace Chee\Theme;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Chee\Theme\Models\ThemePosition;
@@ -71,17 +72,12 @@ use Chee\Module\CheeModule;
      */
     public function start()
     {
-        $themes = self::getListAllThemes();
-        foreach($themes as $themeName => $attr)
+        $theme = $this->getActiveTheme();
+        if ($theme)
         {
-            if ($attr['active'] == 1)
-            {
-                $path = $this->getModuleDirectory($themeName);
-                if ($path)
-                {
-                    $this->themes[$themeName] = new Theme($this->app, $themeName, $path);
-                }
-            }
+            $path = $this->getModuleDirectory($theme->theme_name);
+            if ($path)
+                $this->themes[$theme->theme_name] = new Theme($this->app, $theme->theme_name, $path);
         }
     }
 
@@ -96,59 +92,29 @@ use Chee\Module\CheeModule;
         {
             $theme->register();
         }
-        $themes = ThemeModel::where('active_theme_is_enabled', 1)->get();
-        foreach ($themes as $theme)
-        {
-            if ($theme->active_theme_is_enabled)
-            {
-                $this->app['events']->fire('themes.enable.'.$theme->active_theme_name, null);
-                $theme->active_theme_is_enabled = 0;
-            }
-            $theme->save();
-        }
     }
 
     /**
      * Active theme and build assets
      *
-     * @param string $name
-     * @return bool
+     * @param string $themeName
+     * @return void
      */
-    public function active($name)
+    public function active($themeName)
     {
-        if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
-        {
-            $dependencies = $this->def($name, 'require');
-            if (!$this->checkDependency($dependencies))
-                return false;
-
-            if (!$this->findOrFalse('active_theme_name', $name))
-            {
-                $theme = new ThemeModel;
-                $theme->active_theme_name = $this->def($name, 'name');
-                $theme->active_theme_is_enabled = 1;
-                $theme->save();
-                return true;
-            }
-        }
-        return false;
+        ThemeModel::update('theme_active', 0);
+        ThemeModel::where('theme_name', $themeName)->update('theme_active', 1);
     }
 
     /**
      * Dective theme and build assets
      *
-     * @param string $name
-     * @param int $order order of theme
-     * @return bool
+     * @param string $themeName
+     * @return void
      */
-    public function deactive($name)
+    public function deactive($themeName)
     {
-        if ($theme = $this->findOrFalse('active_theme_name', $name))
-        {
-            ThemeModel::find($theme->active_theme_id)->delete();
-            $this->app['events']->fire('themes.disable.'.$name, null);
-        }
-        return false;
+        ThemeModel::where('theme_name', $themeName)->update('theme_active', 0);
     }
 
     /**
@@ -164,99 +130,55 @@ use Chee\Module\CheeModule;
     /**
      * Get all list themes
      *
-     * @param model|null $actives
+     * @param bool $withActiveTheme
      * @return array
      */
-    public function getListAllThemes($inactives = false)
+    public function getListAllThemes($withActiveTheme = true)
     {
-        if (!$this->files->exists($this->path))
+        if ($withActiveTheme)
+            $themes = ThemeModel::all();
+        else
         {
-            $this->files->makeDirectory($this->path, 0755, true);
+            $activeTheme = $this->getActiveTheme();
+            if (isset($activeTheme->theme_name))
+                $themes = ThemeModel::where('theme_name', '<>', $activeTheme->theme_name)->get();
+            else
+                $themes = ThemeModel::all();
         }
 
-        $directories = $this->files->directories($this->path);
-        $themes = array();
-        foreach($directories as $directory)
-        {
-            if ($this->checkRequires($directory))
-            {
-                if ($inactives)
-                {
-                    if (!$this->findOrFalse('active_theme_name', basename($directory)))
-                    {
-                        array_push($themes, basename($directory));
-                    }
-                }
-                else array_push($themes, basename($directory));
-            }
-        }
-        return $this->getListThemes($themes);
-    }
-
-    /**
-     * Get list of active themes
-     *
-     * @return array
-     */
-    public function getListActiveThemes()
-    {
-        $themes = ThemeModel::orderBy('active_theme_order', 'asc')->get();
-        return $this->getListThemes($themes, true);
-    }
-
-    /**
-     * Get list of active themes
-     *
-     * @return array
-     */
-    public function getListInactiveThemes()
-    {
-        return $this->getListAllThemes('inactive');
+        return $this->makeListThemes($themes);
     }
 
     /**
      * Get details of a theme
      *
-     * @param string $name
+     * @param string $themeName
      * @return array|false
      */
-    public function getTheme($name)
+    public function getTheme($themeName)
     {
-        $theme = array();
-        $theme['name'] = $this->def($name, 'name');
-        $theme['icon'] = null === $this->def($name, 'icon') ? null : $this->getConfig('assets').'/'.$name.'/'.$this->def($name, 'icon');
-        $theme['description'] = $this->def($name, 'description');
-        $theme['author'] = $this->def($name, 'author');
-        $theme['website'] = $this->def($name, 'website');
-        $theme['version'] = $this->def($name, 'version');
-        return $theme;
+        $themes = ThemeModel::where('theme_name', $themeName)->get();
+        $themes = $this->makeListThemes($themes);
+        if (isset($themes[$themeName]))
+            return $themes[$themeName];
+        return false;
     }
 
     /**
      * Get list themes
      *
-     * @param array $themesModel
-     * @param bool $isModel
+     * @param Illuminate\Database\Eloquent\Collection $themesBag
      * @return array
      */
-    protected function getListThemes($themesList, $isModel = false)
+    protected function makeListThemes(Collection $themesBag)
     {
         $themes = array();
-        foreach ($themesList as $themeName)
+        foreach ($themesBag as $theme)
         {
-            if($isModel)
-            {
-                $themes[$themeName->active_theme_name]['id'] = $themeName->active_theme_id;
-                $themeName = $themeName->active_theme_name;
-            }
-            else
-            {
-                $themeModel = $this->findOrFalse('active_theme_name', $themeName);
-                if($themeModel) $themes[$themeName]['active'] = 1;
-                else $themes[$themeName]['active'] = 0;
-            }
+            $themeName = $theme->theme_name;
 
-            $themes[$themeName]['name'] = $this->def($themeName, 'name');
+            $themes[$themeName]['id'] = $theme->theme_id;
+            $themes[$themeName]['name'] = $themeName;
             $themes[$themeName]['icon'] = null === $this->def($themeName, 'icon') ? null : $this->getConfig('assets').'/'.$themeName.'/'.$this->def($themeName, 'icon');
             $themes[$themeName]['description'] = $this->def($themeName, 'description');
             $themes[$themeName]['author'] = $this->def($themeName, 'author');
@@ -268,6 +190,19 @@ use Chee\Module\CheeModule;
     }
 
     /**
+    * Get details of active theme
+    *
+    * @return Illuminate\Database\Eloquent\Collection|false
+    */
+    public function getActiveTheme()
+    {
+        $theme = ThemeModel::where('theme_active', 1)->first();
+        if ($theme)
+            return $theme;
+        return false;
+    }
+
+    /**
      * Register module
      *
      * @param string $themeName
@@ -275,9 +210,12 @@ use Chee\Module\CheeModule;
      */
     protected function registerModule($themeName)
     {
-        $this->setPositions($themeName);
+        $theme = new ThemeModel;
+        $theme->theme_name = $themeName;
+        $theme->save();
 
-        $this->removeImageSizes($themeName);
+        $this->setPositions($themeName, $theme->theme_id);
+
         $this->setImageSizes($themeName);
 
         return true;
@@ -294,7 +232,6 @@ use Chee\Module\CheeModule;
         $this->removePositions($themeName);
         $this->setPositions($themeName);
 
-        $this->removeImageSizes($themeName);
         $this->setImageSizes($themeName);
     }
 
@@ -302,9 +239,10 @@ use Chee\Module\CheeModule;
      * Set positions of theme
      *
      * @param string $themeName
+     * @param int $themeId id of theme in themes table
      * @return void
      */
-    public function setPositions($themeName)
+    public function setPositions($themeName, $themeId)
     {
         $positions = $this->def($themeName, 'positions');
         foreach ($positions as $pos)
@@ -318,7 +256,7 @@ use Chee\Module\CheeModule;
                     $position->theme_position_name = $pos['name'];
                     if (isset($pos['description']))
                         $position->theme_position_description = $pos['description'];
-                    $position->active_themes_name = $themeName;
+                    $position->theme_id = $themeId;
                     $position->save();
                 }
             }
@@ -346,14 +284,30 @@ use Chee\Module\CheeModule;
             }
 
             $imagesSizesBag[] = array(
-                "image_size_name" => $size['name'],
-                "image_size_width" => (int) $size['width'],
-                "image_size_height" => (int) $size['height'],
-                "image_size_quality" => (int) $size['quality'],
-                "image_size_usage" => (string) json_encode($types)
+                'image_size_name' => $size['name'],
+                'image_size_width' => (int) $size['width'],
+                'image_size_height' => (int) $size['height'],
+                'image_size_quality' => (int) $size['quality'],
+                'image_size_usage' => (string) json_encode($types),
+                'deleted_at' => ''
             );
         }
-        ImageSize::insert($imagesSizesBag);
+
+        foreach ($imagesSizesBag as $size)
+        {
+            $imageSize = ImageSize::withTrashed()->where('image_size_name', $size['image_size_name'])->first();
+            if ($imageSize)
+            {
+                $imageSize->image_size_width = $size['image_size_width'];
+                $imageSize->image_size_height = $size['image_size_height'];
+                $imageSize->image_size_quality = $size['image_size_quality'];
+                $imageSize->image_size_usage = $size['image_size_usage'];
+                $imageSize->deleted_at = null;
+                $imageSize->save();
+            }
+            else
+                ImageSize::insert($size);
+        }
     }
 
     /**
@@ -372,41 +326,44 @@ use Chee\Module\CheeModule;
     /**
      * Remove positions of theme
      *
-     * @param string $themeName
+     * @param int $themeId id of theme in themes table
      * @return void
      */
-    public function removePositions($themeName)
+    public function removePositions($themeId)
     {
-        $positions = ThemePosition::where('active_themes_name', $themeName)->delete();
+        $positions = ThemePosition::where('theme_id', $themeId)->delete();
     }
 
     /**
      * Delete theme and remove assets and module files
      *
      * @param string $themeName
-     * @return boolean
+     * @return bool
      */
     public function delete($themeName)
     {
-        if ($this->moduleExists($themeName))
+        $theme = $this->findOrFalse('theme_name', $themeName);
+        if ($theme)
         {
+            if ($theme)
+            {
+                $this->removeImageSizes($themeName);
+                $this->removePositions($theme->theme_id);
+                $theme->delete();
+            }
+
             $this->removeAssets($themeName);
 
             $themePath = $this->getModuleDirectory($themeName);
-
             $this->files->deleteDirectory($themePath);
             if ($this->files->exists($themePath))
             {
                 $this->errors->add('delete_files', 'Unable to delete files in: '.$themePath);
             }
 
-            $theme = $this->findOrFalse('active_theme_name', $themeName);
-            if ($theme)
-            {
-                $theme->delete();
-            }
-            $this->removePositions($themeName);
+            return true;
         }
+        return false;
     }
 
     /**

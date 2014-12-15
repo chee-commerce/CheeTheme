@@ -5,9 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 
 class ThemeModel extends Model {
 
-    public $table = 'active_themes';
+    public $table = 'themes';
 
     public $timestamps = false;
 
-    protected $primaryKey = 'active_theme_id';
+    protected $primaryKey = 'theme_id';
 }

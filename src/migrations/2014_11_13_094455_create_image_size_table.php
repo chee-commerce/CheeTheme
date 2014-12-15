@@ -20,6 +20,7 @@ class CreateImageSizeTable extends Migration {
 			$table->string('image_size_height', 5)->nullable()->default(null);
 			$table->string('image_size_quality', 3)->nullable()->default(null);
 			$table->string('image_size_usage', 200)->nullable()->default(null);
+			$table->softDeletes();
 		});
 	}
 
