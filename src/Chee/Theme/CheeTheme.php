@@ -116,14 +116,12 @@ use Chee\Module\CheeModule;
      */
     public function active($name)
     {
-        $cheeCommerceRequire = $this->def($name, $this->systemName);
-        if (!$this->CheeCommerceCompliancy($cheeCommerceRequire))
-        {
-            return false;
-        }
-
         if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
         {
+            $dependencies = $this->def($name, 'require');
+            if (!$this->checkDependency($dependencies))
+                return false;
+
             if (!$this->findOrFalse('active_theme_name', $name))
             {
                 $theme = new ThemeModel;
