@@ -259,8 +259,9 @@ use Chee\Module\CheeModule;
      */
     protected function updateRegisteredModule($themeName)
     {
-        $this->removePositions($themeName);
-        $this->setPositions($themeName);
+        $theme = $this->findOrFalse('theme_name', $themeName);
+        if ($theme)
+            $this->setPositions($themeName, $theme->theme_id);
 
         $this->setImageSizes($themeName);
     }
