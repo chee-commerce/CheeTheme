@@ -98,23 +98,33 @@ use Chee\Module\CheeModule;
      * Active theme and build assets
      *
      * @param string $themeName
-     * @return void
+     * @return bool
      */
     public function active($themeName)
     {
-        $this->app['db']->table('themes')->update(array('theme_active' => 0));
-        ThemeModel::where('theme_name', $themeName)->update(array('theme_active' => 1));
+        if ($this->moduleExists($themeName))
+        {
+            $this->app['db']->table('themes')->update(array('theme_active' => 0));
+            ThemeModel::where('theme_name', $themeName)->update(array('theme_active' => 1));
+            return true;
+        }
+        return false;
     }
 
     /**
      * Dective theme and build assets
      *
      * @param string $themeName
-     * @return void
+     * @return bool
      */
     public function deactive($themeName)
     {
-        ThemeModel::where('theme_name', $themeName)->update('theme_active', 0);
+        if ($this->moduleExists($themeName))
+        {
+            ThemeModel::where('theme_name', $themeName)->update('theme_active', 0);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -411,8 +421,9 @@ use Chee\Module\CheeModule;
      */
     public function moduleExists($themeName)
     {
+        $theme = $this->findOrFalse('theme_name', $themeName);
         $themePath = $this->files->exists($this->path.'/'.$themeName);
-        if (!$themePath) return false;
+        if (!$themePath || !$theme) return false;
         return true;
     }
 
