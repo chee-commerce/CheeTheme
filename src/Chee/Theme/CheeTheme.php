@@ -7,14 +7,12 @@ use Illuminate\Config\Repository;
 use Chee\Theme\Models\ThemeModel;
 use Chee\Theme\Models\ImageSize;
 use Chee\Module\CheeModule;
-use Chee\Pclzip\Pclzip;
 
 /**
  * CheeModule for manage module
  *
  * @author Chee
  */
-
  class CheeTheme extends CheeModule
  {
     /**
@@ -56,15 +54,14 @@ use Chee\Pclzip\Pclzip;
     /**
      * Initialize class
      *
-     * @param $app Illuminate\Foundation\Application
-     * @param $config Illuminate\Config\Repository
-     * @param $files Illuminate\Filesystem\Filesystem
+     * @param Illuminate\Foundation\Application $app
+     * @param Illuminate\Config\Repository $config
+     * @param Illuminate\Filesystem\Filesystem $files
+     * @return void
      */
     public function __construct(Application $app, Repository $config, Filesystem $files)
     {
         parent::__construct($app, $config, $files);
-
-        $this->configFile = '/theme.json';
     }
 
     /**
@@ -114,7 +111,7 @@ use Chee\Pclzip\Pclzip;
     /**
      * Active theme and build assets
      *
-     * @param $name string
+     * @param string $name
      * @return bool
      */
     public function active($name)
@@ -140,32 +137,10 @@ use Chee\Pclzip\Pclzip;
     }
 
     /**
-     * Force active theme and build assets
-     *
-     * @param $name string
-     * @return bool
-     */
-    public function forceActive($name)
-    {
-        if ($this->moduleExists($name) && $this->checkRequires($this->getModuleDirectory($name)))
-        {
-            if (!$this->findOrFalse('active_theme_name', $name))
-            {
-                $theme = new ThemeModel;
-                $theme->active_theme_name = $this->def($name, 'name');
-                $theme->active_theme_is_enabled = 1;
-                $theme->save();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Dective theme and build assets
      *
-     * @param $name string
-     * @param $order int order of theme
+     * @param string $name
+     * @param int $order order of theme
      * @return bool
      */
     public function deactive($name)
@@ -179,9 +154,19 @@ use Chee\Pclzip\Pclzip;
     }
 
     /**
+     * Get all list modules
+     *
+     * @return array
+     */
+    public function getListAllModules()
+    {
+        return $this->getListAllThemes();
+    }
+
+    /**
      * Get all list themes
      *
-     * @param $actives model|null
+     * @param model|null $actives
      * @return array
      */
     public function getListAllThemes($inactives = false)
@@ -234,7 +219,7 @@ use Chee\Pclzip\Pclzip;
     /**
      * Get details of a theme
      *
-     * @param $name string
+     * @param string $name
      * @return array|false
      */
     public function getTheme($name)
@@ -252,7 +237,8 @@ use Chee\Pclzip\Pclzip;
     /**
      * Get list themes
      *
-     * @param $themesModel array
+     * @param array $themesModel
+     * @param bool $isModel
      * @return array
      */
     protected function getListThemes($themesList, $isModel = false)
@@ -284,22 +270,13 @@ use Chee\Pclzip\Pclzip;
     }
 
     /**
-     * Initialize zip theme for install
+     * Register module
      *
-     * @param $archivePath string path
-     * @param $themeName string
+     * @param string $themeName
      * @return bool
      */
-    protected function moduleInit($archivePath, $themeName)
+    protected function registerModule($themeName)
     {
-        //Move extracted theme to themes path
-        if (!$this->files->copyDirectory($archivePath, $this->path.'/'.$themeName))
-        {
-            $this->errors['themeInit']['move'] = 'Can not move files.';
-            return false;
-        }
-
-        $this->buildAssets($themeName);
         $this->setPositions($themeName);
 
         $this->removeImageSizes($themeName);
@@ -311,26 +288,22 @@ use Chee\Pclzip\Pclzip;
     /**
      * Update module
      *
-     * @param $archive string path of zip
-     * @param $moduleName string
+     * @param string $themeName
      * @return bool
      */
-    protected function update($archivePath, $themeName)
+    protected function updateRegisteredModule($themeName)
     {
-        if (parent::update($archivePath, $themeName))
-        {
-            $this->removePositions($themeName);
-            $this->setPositions($themeName);
+        $this->removePositions($themeName);
+        $this->setPositions($themeName);
 
-            $this->removeImageSizes($themeName);
-            $this->setImageSizes($themeName);
-        }
+        $this->removeImageSizes($themeName);
+        $this->setImageSizes($themeName);
     }
 
     /**
      * Set positions of theme
      *
-     * @param $themeName
+     * @param string $themeName
      * @return void
      */
     public function setPositions($themeName)
@@ -340,7 +313,7 @@ use Chee\Pclzip\Pclzip;
         {
             if (isset($pos['name']))
             {
-                $pos['name'] = $this->app['str']->slug($pos['name']);
+                $pos['name'] = $this->app['Str']->slug($pos['name']);
                 if ($pos['name'])
                 {
                     $position = new ThemePosition;
@@ -357,7 +330,7 @@ use Chee\Pclzip\Pclzip;
     /**
      * Set image sizes of theme
      *
-     * @param $themeName
+     * @param string $themeName
      * @return void
      */
     public function setImageSizes($themeName)
@@ -388,7 +361,7 @@ use Chee\Pclzip\Pclzip;
     /**
      * Remove image sizes where name equal to current image size theme
      *
-     * @param $themeName
+     * @param string $themeName
      * @return void
      */
     public function removeImageSizes($themeName)
@@ -401,7 +374,7 @@ use Chee\Pclzip\Pclzip;
     /**
      * Remove positions of theme
      *
-     * @param $themeName
+     * @param string $themeName
      * @return void
      */
     public function removePositions($themeName)
@@ -412,37 +385,37 @@ use Chee\Pclzip\Pclzip;
     /**
      * Delete theme and remove assets and module files
      *
-     * @param $name string
+     * @param string $themeName
      * @return boolean
      */
-    public function delete($name)
+    public function delete($themeName)
     {
-        if ($this->moduleExists($name))
+        if ($this->moduleExists($themeName))
         {
-            $this->removeAssets($name);
+            $this->removeAssets($themeName);
 
-            $themePath = $this->getModuleDirectory($name);
+            $themePath = $this->getModuleDirectory($themeName);
 
             $this->files->deleteDirectory($themePath);
             if ($this->files->exists($themePath))
             {
-                $this->errors['delete']['forbidden']['theme'] = $themePath;
+                $this->errors->add('delete_files', 'Unable to delete files in: '.$themePath);
             }
 
-            $theme = $this->findOrFalse('active_theme_name', $name);
+            $theme = $this->findOrFalse('active_theme_name', $themeName);
             if ($theme)
             {
                 $theme->delete();
             }
-            $this->removePositions($name);
+            $this->removePositions($themeName);
         }
     }
 
     /**
      * Find one record from model
      *
-     * @param $field string
-     * @param $name string
+     * @param string $field
+     * @param string $name
      * @return object|false
      */
     public function findOrFalse($field, $name) {
@@ -451,34 +424,37 @@ use Chee\Pclzip\Pclzip;
     }
 
     /**
-     * Update record module in database
-     *
-     * @param $moduleName string
-     * @return void
-     */
-    protected function updateRecordModule($moduleName)
-    {
-        return true;
-    }
-
-    /**
      * Check if module exists
      *
-     * @param $name string
+     * @param string $themeName
      * @return bool
      */
-    public function moduleExists($name)
+    public function moduleExists($themeName)
     {
-        $themePath = $this->files->exists($this->path.'/'.$name);
+        $themePath = $this->files->exists($this->path.'/'.$themeName);
         if (!$themePath) return false;
         return true;
     }
 
     /**
+     * Get assets path of specific module
+     *
+     * @param string|null $themeName name of theme
+     * @return string
+     */
+    public function getAssetDirectory($themeName = null)
+    {
+        if ($themeName)
+            return public_path().'/'.$this->getConfig('assets').'/'.$themeName;
+
+        return public_path().'/'.$this->getConfig('assets').'/';
+    }
+
+    /**
      * Get configuration module
      *
-     * @param $item string
-     * @param $default null|mixed
+     * @param string $item
+     * @param null|mixed $default
      * @return mixed
      */
     protected function getConfig($item, $default = null)
