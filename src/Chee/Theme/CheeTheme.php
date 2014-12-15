@@ -339,8 +339,9 @@ use Chee\Module\CheeModule;
     public function removeImageSizes($themeName)
     {
         $imagesSizes = $this->def($themeName, 'imageSizes');
-        foreach ($imagesSizes as $size)
-            ImageSize::where('image_size_name', $size['name'])->delete();
+        if (is_array($imagesSizes))
+            foreach ($imagesSizes as $size)
+                ImageSize::where('image_size_name', $size['name'])->delete();
     }
 
     /**
