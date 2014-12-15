@@ -208,6 +208,21 @@ use Chee\Module\CheeModule;
     }
 
     /**
+    * Get theme is active or not
+    *
+    * @param string $themeName
+    * @return bool
+    */
+    public function isActiveTheme($themeName)
+    {
+        $theme = $this->findOrFalse('theme_active', 1);
+        if ($theme)
+            return $themeName == $theme->theme_name;
+
+        return false;
+    }
+
+    /**
      * Register module
      *
      * @param string $themeName
