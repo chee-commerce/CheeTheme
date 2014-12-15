@@ -192,13 +192,18 @@ use Chee\Module\CheeModule;
     /**
     * Get details of active theme
     *
+    * @param bool $list get detail of active theme?
     * @return Illuminate\Database\Eloquent\Collection|false
     */
-    public function getActiveTheme()
+    public function getActiveTheme($list = false)
     {
         $theme = ThemeModel::where('theme_active', 1)->first();
         if ($theme)
-            return $theme;
+            if ($list)
+                return $this->getTheme($theme->theme_name);
+            else
+                return $theme;
+
         return false;
     }
 
