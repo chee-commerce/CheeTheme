@@ -102,8 +102,8 @@ use Chee\Module\CheeModule;
      */
     public function active($themeName)
     {
-        ThemeModel::update('theme_active', 0);
-        ThemeModel::where('theme_name', $themeName)->update('theme_active', 1);
+        $this->app['db']->table('themes')->update(array('theme_active' => 0));
+        ThemeModel::where('theme_name', $themeName)->update(array('theme_active' => 1));
     }
 
     /**
