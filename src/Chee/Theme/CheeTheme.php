@@ -264,7 +264,9 @@ use Chee\Module\CheeModule;
      */
     public function setPositions($themeName, $themeId)
     {
-        $positions = $this->def($themeName, 'positions');
+        $positions = $this->def($themeName, 'positions', false, array());
+        if (!is_array($positions)) return false;
+
         foreach ($positions as $pos)
         {
             if (isset($pos['name']))
@@ -287,11 +289,13 @@ use Chee\Module\CheeModule;
      * Set image sizes of theme
      *
      * @param string $themeName
-     * @return void
+     * @return mixed
      */
     public function setImageSizes($themeName)
     {
-        $imagesSizes = $this->def($themeName, 'imageSizes');
+        $imagesSizes = $this->def($themeName, 'imageSizes', false, array());
+        if (!is_array($imagesSizes)) return false;
+
         $imagesSizesBag = array();
 
         $imageTypes = array("products" => 0, "categories" => 0, "manufacturers" => 0, "suppliers" => 0);
