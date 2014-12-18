@@ -4,8 +4,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Chee\Theme\Models\ThemePosition;
+use Chee\Theme\Models\PositionView;
 use Illuminate\Config\Repository;
 use Chee\Theme\Models\ThemeModel;
+use Chee\Theme\Models\ModuleView;
 use Chee\Theme\Models\ImageSize;
 use Chee\Module\CheeModule;
 
@@ -246,6 +248,8 @@ use Chee\Module\CheeModule;
 
         $this->setPositions($themeName, $theme->theme_id);
 
+        $this->setPositionsValue($themeName, $theme->theme_id);
+
         $this->setImageSizes($themeName);
 
         return true;
@@ -294,6 +298,48 @@ use Chee\Module\CheeModule;
                 }
             }
         }
+    }
+
+    /**
+     * Set value of positions
+     *
+     * @param string $themeName
+     * @param int $themeId
+     * @return void
+     */
+    protected function setPositionsValue($themeName, $themeId)
+    {
+        $pValues = $this->def($themeName, 'positionsValue', false, array());
+        if (!is_array($pValues)) return false;
+
+        $pvBag = array();
+        $positionsName = array_keys($pValues);
+        $positionsExists = ThemePosition::where('theme_id', $themeId)->whereIn('theme_position_name', $positionsName)->get()->keyBy('theme_position_name')->toArray();
+        foreach ($pValues as $position => $values)
+        {
+            //Do not insert values of not registered position
+            if (!isset($positionsExists[$position]))
+                continue;
+
+            $positionId = $positionsExists[$position][$theme_position_id];
+            foreach ($values as $value)
+            {
+                if ($moduleId = $this->parentModuleExists($value['moduleName'], true) == false)
+                    continue;
+
+                $moduleView = ModuleView::where('modules_module_id', $moduleId)->where('module_view_name', $value['viewName'])->first(array('module_view_id'));
+                if (is_null($moduleView))
+                    continue;
+
+                $pv = new PositionView;
+                $pv->module_views_id = $moduleView->module_view_id;
+                $pv->theme_positions_id = $positionId;
+                $pv->position_view_status = isset($value['status']) ? 1 : 0;
+                $pv->position_view_order = isset($value['order']) ? (int) $value['order'] : 0;
+                array_push($pvBag, $pv);
+            }
+        }
+        PositionView::insert($pvBag);
     }
 
     /**
@@ -415,17 +461,33 @@ use Chee\Module\CheeModule;
     }
 
     /**
-     * Check if module exists
+     * Check if theme exists
      *
      * @param string $themeName
+     * @param bool $returnId
      * @return bool
      */
-    public function moduleExists($themeName)
+    public function moduleExists($themeName, $returnId = false)
     {
         $theme = $this->findOrFalse('theme_name', $themeName);
         $themePath = $this->files->exists($this->path.'/'.$themeName);
         if (!$themePath || !$theme) return false;
-        return true;
+
+        if ($returnId)
+            return $theme->theme_id;
+        else
+            return true;
+    }
+
+    /**
+    * Check if module exists
+    *
+    * @param string $moduleName
+    * @return bool
+    */
+    public function parentModuleExists($moduleName)
+    {
+        return parent::moduleExists($moduleName);
     }
 
     /**
