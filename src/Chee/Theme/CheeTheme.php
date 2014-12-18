@@ -329,11 +329,11 @@ use Chee\Module\CheeModule;
                 if (is_null($moduleView))
                     continue;
 
-                $pv = new PositionView;
-                $pv->module_views_id = $moduleView->module_view_id;
-                $pv->theme_positions_id = $positionId;
-                $pv->position_view_status = isset($value['status']) ? 1 : 0;
-                $pv->position_view_order = isset($value['order']) ? (int) $value['order'] : 0;
+                $pv = array();
+                $pv['module_views_id'] = $moduleView->module_view_id;
+                $pv['theme_positions_id'] = $positionId;
+                $pv['position_view_status'] = isset($value['status']) ? 1 : 0;
+                $pv['position_view_order'] = isset($value['order']) ? (int) $value['order'] : 0;
                 array_push($pvBag, $pv);
             }
         }
