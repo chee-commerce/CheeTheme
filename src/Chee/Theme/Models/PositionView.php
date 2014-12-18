@@ -1,6 +1,8 @@
 <?php namespace Chee\Theme\Models;
 
-class PositionView extends Eloquent
+use Illuminate\Database\Eloquent\Model;
+
+class PositionView extends Model
 {
     protected $table = 'position_views';
 

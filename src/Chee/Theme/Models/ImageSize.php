@@ -1,8 +1,9 @@
 <?php namespace Chee\Theme\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingTrait;
 
-class ImageSize extends \Eloquent
+class ImageSize extends Model
 {
     use SoftDeletingTrait;
 

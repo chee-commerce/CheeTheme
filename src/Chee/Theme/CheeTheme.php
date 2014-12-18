@@ -286,16 +286,12 @@ use Chee\Module\CheeModule;
         {
             if (isset($pos['name']))
             {
-                $pos['name'] = $this->app['Str']->slug($pos['name']);
-                if ($pos['name'])
-                {
-                    $position = new ThemePosition;
-                    $position->theme_position_name = $pos['name'];
-                    if (isset($pos['description']))
-                        $position->theme_position_description = $pos['description'];
-                    $position->theme_id = $themeId;
-                    $position->save();
-                }
+                $position = new ThemePosition;
+                $position->theme_position_name = $pos['name'];
+                if (isset($pos['description']))
+                    $position->theme_position_description = $pos['description'];
+                $position->theme_id = $themeId;
+                $position->save();
             }
         }
     }

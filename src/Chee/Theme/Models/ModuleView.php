@@ -1,6 +1,8 @@
 <?php namespace Chee\Theme\Models;
 
-class ModuleView extends Eloquent
+use Illuminate\Database\Eloquent\Model;
+
+class ModuleView extends Model
 {
     protected $table = 'module_views';
 
