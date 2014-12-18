@@ -9,6 +9,7 @@ use Illuminate\Config\Repository;
 use Chee\Theme\Models\ThemeModel;
 use Chee\Theme\Models\ModuleView;
 use Chee\Theme\Models\ImageSize;
+use Chee\Theme\Models\Module;
 use Chee\Module\CheeModule;
 
 /**
@@ -317,13 +318,14 @@ use Chee\Module\CheeModule;
             if (!isset($positionsExists[$position]))
                 continue;
 
-            $positionId = $positionsExists[$position][$theme_position_id];
+            $positionId = $positionsExists[$position]['theme_position_id'];
             foreach ($values as $value)
             {
-                if ($moduleId = $this->parentModuleExists($value['moduleName'], true) == false)
+                $module = Module::where('module_name', $value['moduleName'])->first();
+                if (is_null($module))
                     continue;
 
-                $moduleView = ModuleView::where('modules_module_id', $moduleId)->where('module_view_name', $value['viewName'])->first(array('module_view_id'));
+                $moduleView = ModuleView::where('modules_module_id', $module->module_id)->where('module_view_name', $value['viewName'])->first(array('module_view_id'));
                 if (is_null($moduleView))
                     continue;
 
