@@ -266,7 +266,10 @@ use Chee\Module\CheeModule;
     {
         $theme = $this->findOrFalse('theme_name', $themeName);
         if ($theme)
+        {
             $this->setPositions($themeName, $theme->theme_id);
+            $this->setPositionsValue($themeName, $theme->theme_id);
+        }
 
         $this->setImageSizes($themeName);
     }
@@ -283,14 +286,27 @@ use Chee\Module\CheeModule;
         $positions = $this->def($themeName, 'positions', false, array());
         if (!is_array($positions)) return false;
 
+        $positionsName = array_column($positions, 'name');
+
+        if (count($positionsName) == 0)
+            return;
+
+        //Delete unused positions in theme update
+        ThemePosition::where('theme_id', $themeId)->whereNotIn('theme_position_name', $positionsName)->delete();
+
+        //Not register positions who before registered in theme update
+        $registeredPositions = ThemePosition::where('theme_id', $themeId)
+                                                ->whereIn('theme_position_name', $positionsName)
+                                                ->get(array('theme_position_name'))
+                                                ->keyBy('theme_position_name');
+
         foreach ($positions as $pos)
         {
-            if (isset($pos['name']))
+            if (isset($pos['name']) && !isset($registeredPositions[$pos['name']]))
             {
                 $position = new ThemePosition;
                 $position->theme_position_name = $pos['name'];
-                if (isset($pos['description']))
-                    $position->theme_position_description = $pos['description'];
+                $position->theme_position_description = @$pos['description'];
                 $position->theme_id = $themeId;
                 $position->save();
             }
@@ -306,14 +322,18 @@ use Chee\Module\CheeModule;
      */
     protected function setPositionsValue($themeName, $themeId)
     {
-        $pValues = $this->def($themeName, 'positionsValue', false, array());
-        if (!is_array($pValues)) return false;
-
         $pvBag = array();
+
+        $pValues = $this->def($themeName, 'positionsValue', false, array());
+        if (!is_array($pValues) || count($pValues) == 0) return false;
+
         $positionsName = array_keys($pValues);
         $positionsExists = ThemePosition::where('theme_id', $themeId)->whereIn('theme_position_name', $positionsName)->get()->keyBy('theme_position_name')->toArray();
         foreach ($pValues as $position => $values)
         {
+            if (!is_array($values))
+                continue;
+
             //Do not insert values of not registered position
             if (!isset($positionsExists[$position]))
                 continue;
@@ -321,6 +341,9 @@ use Chee\Module\CheeModule;
             $positionId = $positionsExists[$position]['theme_position_id'];
             foreach ($values as $value)
             {
+                if (!is_array($value) || !isset($value['moduleName']) || !isset($value['viewName']))
+                    continue;
+
                 $module = Module::where('module_name', $value['moduleName'])->first();
                 if (is_null($module))
                     continue;
@@ -329,12 +352,18 @@ use Chee\Module\CheeModule;
                 if (is_null($moduleView))
                     continue;
 
-                $pv = array();
-                $pv['module_views_id'] = $moduleView->module_view_id;
-                $pv['theme_positions_id'] = $positionId;
-                $pv['position_view_status'] = isset($value['status']) ? 1 : 0;
-                $pv['position_view_order'] = isset($value['order']) ? (int) $value['order'] : 0;
-                array_push($pvBag, $pv);
+                //Check position value not registered before
+                $registeredPV = PositionView::where('module_views_id', $moduleView->module_view_id)->where('theme_positions_id', $positionId)->count();
+
+                if ($registeredPV == 0)
+                {
+                    $pv = array();
+                    $pv['module_views_id'] = $moduleView->module_view_id;
+                    $pv['theme_positions_id'] = $positionId;
+                    $pv['position_view_status'] = isset($value['status']) ? 1 : 0;
+                    $pv['position_view_order'] = (int) @$value['order'];
+                    array_push($pvBag, $pv);
+                }
             }
         }
         PositionView::insert($pvBag);
