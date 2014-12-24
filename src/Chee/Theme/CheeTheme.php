@@ -366,7 +366,8 @@ use Chee\Module\CheeModule;
                 }
             }
         }
-        PositionView::insert($pvBag);
+        if (count($pvBag) > 0)
+            PositionView::insert($pvBag);
     }
 
     /**
