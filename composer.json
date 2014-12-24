@@ -14,9 +14,6 @@
         "chee/module": "dev-master"
     },
     "autoload": {
-        "classmap": [
-            "src/migrations"
-        ],
         "psr-0": {
             "Chee\\Theme\\": "src/"
         }
