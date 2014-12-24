@@ -307,7 +307,7 @@ use Chee\Module\CheeModule;
                 $position = new ThemePosition;
                 $position->theme_position_name = $pos['name'];
                 $position->theme_position_description = @$pos['description'];
-                $position->theme_id = $themeId;
+                $position->themes_theme_id = $themeId;
                 $position->save();
             }
         }
