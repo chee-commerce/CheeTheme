@@ -292,10 +292,10 @@ use Chee\Module\CheeModule;
             return;
 
         //Delete unused positions in theme update
-        ThemePosition::where('theme_id', $themeId)->whereNotIn('theme_position_name', $positionsName)->delete();
+        ThemePosition::where('themes_theme_id', $themeId)->whereNotIn('theme_position_name', $positionsName)->delete();
 
         //Not register positions who before registered in theme update
-        $registeredPositions = ThemePosition::where('theme_id', $themeId)
+        $registeredPositions = ThemePosition::where('themes_theme_id', $themeId)
                                                 ->whereIn('theme_position_name', $positionsName)
                                                 ->get(array('theme_position_name'))
                                                 ->keyBy('theme_position_name');
@@ -328,7 +328,7 @@ use Chee\Module\CheeModule;
         if (!is_array($pValues) || count($pValues) == 0) return false;
 
         $positionsName = array_keys($pValues);
-        $positionsExists = ThemePosition::where('theme_id', $themeId)->whereIn('theme_position_name', $positionsName)->get()->keyBy('theme_position_name')->toArray();
+        $positionsExists = ThemePosition::where('themes_theme_id', $themeId)->whereIn('theme_position_name', $positionsName)->get()->keyBy('theme_position_name')->toArray();
         foreach ($pValues as $position => $values)
         {
             if (!is_array($values))
@@ -353,13 +353,13 @@ use Chee\Module\CheeModule;
                     continue;
 
                 //Check position value not registered before
-                $registeredPV = PositionView::where('module_views_id', $moduleView->module_view_id)->where('theme_positions_id', $positionId)->count();
+                $registeredPV = PositionView::where('module_views_module_view_id', $moduleView->module_view_id)->where('theme_positions_theme_position_id', $positionId)->count();
 
                 if ($registeredPV == 0)
                 {
                     $pv = array();
-                    $pv['module_views_id'] = $moduleView->module_view_id;
-                    $pv['theme_positions_id'] = $positionId;
+                    $pv['module_views_module_view_id'] = $moduleView->module_view_id;
+                    $pv['theme_positions_theme_position_id'] = $positionId;
                     $pv['position_view_status'] = isset($value['status']) ? 1 : 0;
                     $pv['position_view_order'] = (int) @$value['order'];
                     array_push($pvBag, $pv);
@@ -440,7 +440,7 @@ use Chee\Module\CheeModule;
      */
     public function removePositions($themeId)
     {
-        $positions = ThemePosition::where('theme_id', $themeId)->delete();
+        $positions = ThemePosition::where('themes_theme_id', $themeId)->delete();
     }
 
     /**
