@@ -37,6 +37,7 @@ return array(
 
     //required files for install a module
     'requires' => array(
+        'ServiceProvider.php',
         'theme.json' => array(
             'name',
             'version'
