@@ -25,11 +25,14 @@ class ListCommand extends \Chee\Module\Commands\AbstractCommand
     public function fire()
     {
         $this->info('CheeTheme Commands:');
-        $this->info('-----------------------------------------------------------------------------------------------------------------------------');
-        $this->info('| CheeTheme::create      | Create a new theme for development.  | eg: php artisan CheeTheme::create name=themeName');
-        $this->info('-----------------------------------------------------------------------------------------------------------------------------');
-        $this->info('| CheeTheme::buildAssets | Move assets directory to public.     | eg: php artisan CheeTheme::buildAssets name=moduleTheme');
-        $this->info('-----------------------------------------------------------------------------------------------------------------------------');
+        $this->info('--------------------------------------------------------------------------------------------------------------------------------');
+        $this->info('| CheeTheme:create         | Create a new theme for development.  | eg: php artisan CheeTheme:create name=themeName            |');
+        $this->info('--------------------------------------------------------------------------------------------------------------------------------');
+        $this->info('| CheeTheme:buildAssets    | Move assets directory to public.     | eg: php artisan CheeTheme:buildAssets name=moduleTheme     |');
+        $this->info('--------------------------------------------------------------------------------------------------------------------------------');
+        $this->info('| CheeTheme:buildTheme     | Regenerate positions, positionValues | eg: php artisan CheeTheme:buildTheme name=moduleTheme      |');
+        $this->info('|                          | and image sizes                      |                                                            |');
+        $this->info('--------------------------------------------------------------------------------------------------------------------------------');
         $this->info('');
     }
 

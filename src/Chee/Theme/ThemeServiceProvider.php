@@ -48,8 +48,14 @@ class ThemeServiceProvider extends ServiceProvider
 			return new Commands\ListCommand($app);
 		});
 
+		$this->app['CheeTheme.buildTheme'] = $this->app->share(function($app)
+		{
+			return new Commands\BuildThemeCommand($app);
+		});
+
 		$this->commands(array(
 			'CheeTheme',
+			'CheeTheme.buildTheme'
 		));
 	}
 

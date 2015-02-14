@@ -262,16 +262,21 @@ use Chee\Module\CheeModule;
      * @param string $themeName
      * @return bool
      */
-    protected function updateRegisteredModule($themeName)
+    public function updateRegisteredModule($themeName)
     {
         $theme = $this->findOrFalse('theme_name', $themeName);
         if ($theme)
         {
             $this->setPositions($themeName, $theme->theme_id);
             $this->setPositionsValue($themeName, $theme->theme_id);
+            $this->setImageSizes($themeName);
+            return true;
+        }
+        else
+        {
+            return false;
         }
 
-        $this->setImageSizes($themeName);
     }
 
     /**
